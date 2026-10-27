@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Clinical ER Guide">
+  <title>Clinical ER, Surgery, Medicine & Neuro Guide v6.0</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: #f1f5f9;
+      color: #0f172a;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .card { background: #ffffff; border: 1px solid #cbd5e1; border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .active-mob { color: #0284c7; border-top: 3px solid #0284c7; background: rgba(2,132,199,0.08); }
+    .active-side { background: #0284c7; color: #ffffff; border-color: #0284c7; }
+    .no-sb::-webkit-scrollbar { display: none; }
+    input, select, textarea { outline: none; }
+    .renal-active {
+      background: rgba(16, 185, 129, 0.12) !important;
+      border: 1px solid #10b981 !important;
+      color: #065f46 !important;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row pb-20 md:pb-0">
+
+  <!-- ================= iPAD / TABLET SIDEBAR ================= -->
+  <aside class="hidden md:flex md:flex-col md:w-72 lg:w-80 bg-white border-r border-slate-200 p-4 sticky top-0 h-screen shrink-0 justify-between select-none shadow-sm">
+    <div class="space-y-4 overflow-y-auto no-sb">
+      <div class="flex items-center gap-3 pb-3 border-b border-slate-200">
+        <div class="w-11 h-11 rounded-2xl bg-sky-500/10 border border-sky-400/30 flex items-center justify-center text-2xl">⚕️</div>
+        <div>
+          <h1 class="font-extrabold text-base text-slate-900 leading-tight">Acute Care Pocket</h1>
+          <p class="text-[11px] text-emerald-600 font-semibold">ER • Surgery • Medicine • Rx v6.0</p>
+        </div>
+      </div>
+
+      <!-- Persistent Weight Controller on iPad -->
+      <div class="card p-3.5 space-y-2.5 bg-slate-50 border-slate-200">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-bold text-slate-700">Patient Weight:</span>
+          <span id="sideWBadge" class="text-base font-extrabold text-sky-600 bg-white px-2.5 py-0.5 rounded-lg border border-sky-200 shadow-sm">70 kg</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button onclick="setW(W-5)" class="w-9 h-9 rounded-xl bg-slate-200 hover:bg-slate-300 font-bold text-xs text-slate-700">-5</button>
+          <input id="wInpSide" type="number" value="70" oninput="setW(this.value)" class="w-full text-center bg-white border border-slate-300 rounded-xl py-1.5 font-extrabold text-sky-600 text-sm">
+          <button onclick="setW(W+5)" class="w-9 h-9 rounded-xl bg-slate-200 hover:bg-slate-300 font-bold text-xs text-slate-700">+5</button>
+        </div>
+        <input id="wRngSide" type="range" min="3" max="150" value="70" oninput="setW(this.value)" class="w-full accent-sky-500 h-2 bg-slate-200 rounded-lg cursor-pointer">
+        <div class="grid grid-cols-4 gap-1 text-[10px] text-center font-bold text-slate-600 pt-1">
+          <button onclick="setW(12)" class="bg-white border border-slate-200 py-1 rounded hover:text-sky-600">12kg</button>
+          <button onclick="setW(25)" class="bg-white border border-slate-200 py-1 rounded hover:text-sky-600">25kg</button>
+          <button onclick="setW(70)" class="bg-sky-50 border border-sky-200 py-1 rounded text-sky-700 font-extrabold">70kg</button>
+          <button onclick="setW(120)" class="bg-white border border-slate-200 py-1 rounded hover:text-sky-600">120kg</button>
+        </div>
+      </div>
+
+      <!-- Quick CrCl Status on Sidebar -->
+      <div class="card p-3 bg-slate-50 border-slate-200 flex justify-between items-center text-xs">
+        <span class="text-slate-600 font-bold">Renal CrCl:</span>
+        <span id="sideCrClBadge" class="font-extrabold text-emerald-600">86 mL/min</span>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="space-y-1.5 text-xs font-bold text-slate-600">
+        <button onclick="tab('dosing')" id="s-dosing" class="w-full p-3 rounded-xl border border-transparent flex items-center gap-3 text-left transition active-side">
+          <span class="text-lg">💊</span><span>Emergency Medications</span>
+        </button>
+        <button onclick="tab('abx')" id="s-abx" class="w-full p-3 rounded-xl border border-slate-200 flex items-center gap-3 text-left hover:bg-slate-100 transition">
+          <span class="text-lg">📦</span><span>Medication Categories</span>
+        </button>
+        <button onclick="tab('rx')" id="s-rx" class="w-full p-3 rounded-xl border border-slate-200 flex items-center gap-3 text-left hover:bg-slate-100 transition">
+          <span class="text-lg">📝</span><span>Prescription Writer</span>
+        </button>
+        <button onclick="tab('protocols')" id="s-protocols" class="w-full p-3 rounded-xl border border-slate-200 flex items-center gap-3 text-left hover:bg-slate-100 transition">
+          <span class="text-lg">🚨</span><span>ER Protocols (Surg/Med/Neuro)</span>
+        </button>
+        <button onclick="tab('scales')" id="s-scales" class="w-full p-3 rounded-xl border border-slate-200 flex items-center gap-3 text-left hover:bg-slate-100 transition">
+          <span class="text-lg">🧠</span><span>Clinical Scales & CrCl</span>
+        </button>
+        <button onclick="tab('pump')" id="s-pump" class="w-full p-3 rounded-xl border border-slate-200 flex items-center gap-3 text-left hover:bg-slate-100 transition">
+          <span class="text-lg">💉</span><span>ICU Infusion Pumps</span>
+        </button>
+        <div class="pt-2 border-t border-slate-200">
+          <button onclick="tab('all')" id="s-all" class="w-full p-3 rounded-xl border border-sky-300 bg-sky-50 flex items-center gap-3 text-left text-sky-700 hover:bg-sky-100 transition">
+            <span class="text-lg">🖥️</span><span>iPad Split Dashboard View</span>
+          </button>
+        </div>
+      </nav>
+    </div>
+
+    <div class="text-[10px] text-slate-400 text-center border-t border-slate-200 pt-2">
+      Point-of-Care Clinical Reference v6.0
+    </div>
+  </aside>
+
+  <!-- ================= MOBILE TOP HEADER ================= -->
+  <header class="md:hidden sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200 px-4 py-2.5 flex justify-between items-center shadow-sm">
+    <div>
+      <h1 class="font-extrabold text-sm text-slate-900">⚕️ Acute Care & ER Pocket</h1>
+      <p class="text-[10px] text-emerald-600 font-bold">Neuro • Surgery • Medicine • Rx v6.0</p>
+    </div>
+    <div class="flex gap-1.5">
+      <div class="bg-slate-100 border border-slate-200 rounded-xl px-2.5 py-1 text-center">
+        <span class="text-[9px] text-slate-500 block">CrCl</span>
+        <span id="hdrCrCl" class="text-xs font-extrabold text-emerald-600">86</span>
+      </div>
+      <div class="bg-slate-100 border border-slate-200 rounded-xl px-2.5 py-1 text-center">
+        <span class="text-[9px] text-slate-500 block">Weight</span>
+        <span id="hdrW" class="text-xs font-extrabold text-sky-600">70 kg</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <main class="flex-1 p-3.5 md:p-6 max-w-7xl mx-auto w-full space-y-6 overflow-y-auto">
+
+    <!-- Mobile Weight Controller -->
+    <div class="md:hidden card p-3 bg-white">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-xs font-bold text-slate-700">Patient Weight (kg):</span>
+        <div class="flex items-center gap-1.5">
+          <button onclick="setW(W-5)" class="w-8 h-8 rounded-lg bg-slate-200 font-bold text-xs text-slate-700">-5</button>
+          <input id="wInpMob" type="number" value="70" oninput="setW(this.value)" class="w-16 text-center bg-slate-50 border border-sky-400 rounded-lg py-1 font-extrabold text-sky-600">
+          <button onclick="setW(W+5)" class="w-8 h-8 rounded-lg bg-slate-200 font-bold text-xs text-slate-700">+5</button>
+        </div>
+      </div>
+      <input id="wRngMob" type="range" min="3" max="150" value="70" oninput="setW(this.value)" class="w-full accent-sky-500 h-2 bg-slate-200 rounded-lg">
+      <div class="flex justify-between text-[10px] text-slate-500 mt-1 font-bold">
+        <span onclick="setW(10)" class="bg-slate-100 px-2 py-0.5 rounded">Child 10kg</span>
+        <span onclick="setW(25)" class="bg-slate-100 px-2 py-0.5 rounded">Child 25kg</span>
+        <span onclick="setW(70)" class="bg-sky-50 px-2 py-0.5 rounded text-sky-700 font-bold">Adult 70kg</span>
+        <span onclick="setW(120)" class="bg-slate-100 px-2 py-0.5 rounded">120kg+</span>
+      </div>
+    </div>
+
+    <!-- ================= SECTION 1: EMERGENCY MEDICATIONS ================= -->
+    <section id="tab-dosing" class="space-y-3">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+        <div>
+          <h2 class="text-base md:text-lg font-extrabold text-slate-900 flex items-center gap-2">
+            <span>💊 Emergency Medications (ACLS / ER)</span>
+            <span class="text-[11px] bg-sky-100 text-sky-700 px-2.5 py-0.5 rounded-full font-bold">Tap to Expand ▼</span>
+          </h2>
+          <p class="text-[11px] text-slate-500">Tap any emergency medication row to expand weight-based dosing & clinical pearls</p>
+        </div>
+        <div class="flex gap-2 items-center">
+          <input id="dSearch" type="text" oninput="renderDrugs()" placeholder="🔍 Search drug (Atropine, Epinephrine, Mannitol)..."
+            class="w-full md:w-72 bg-white border border-slate-300 focus:border-sky-500 rounded-xl py-2 px-3 text-xs text-slate-800 shadow-sm">
+          <button onclick="toggleGroup('drug')" class="bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 px-3 py-2 rounded-xl text-[11px] font-bold shrink-0 shadow-sm">
+            Expand / Collapse All
+          </button>
+        </div>
+      </div>
+
+      <div class="flex gap-1.5 overflow-x-auto no-sb text-xs font-bold pb-1" id="catBar"></div>
+      <div id="drugsList" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2.5 items-start"></div>
+    </section>
+
+    <!-- ================= SECTION 2: MEDICATION CATEGORIES ================= -->
+    <section id="tab-abx" class="hidden space-y-4">
+      <div class="card p-4 bg-gradient-to-r from-sky-50 to-indigo-50 border-sky-300 space-y-2">
+        <h3 class="text-sm font-extrabold text-sky-900">📦 Medication Categories & Protocols</h3>
+        <p class="text-[11px] text-slate-600">Select a category below to explore specific protocols, guidelines, and drug groups.</p>
+      </div>
+
+      <!-- Search & 5 Categories Filter Bar -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+        <div class="flex gap-1.5 overflow-x-auto no-sb text-xs font-bold pb-1" id="abxCatBar"></div>
+        <div class="flex gap-2 items-center shrink-0">
+          <input id="abxSearch" type="text" oninput="renderAbx()" placeholder="🔍 Search category items..."
+            class="w-full md:w-64 bg-white border border-slate-300 focus:border-emerald-500 rounded-xl py-2 px-3 text-xs text-slate-800 shadow-sm">
+          <button onclick="toggleGroup('abx')" class="bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 px-3 py-2 rounded-xl text-[11px] font-bold shrink-0 shadow-sm">
+            Expand / Collapse
+          </button>
+        </div>
+      </div>
+
+      <!-- Category Protocols / Items List -->
+      <div id="empiricSection" class="space-y-4">
+        <h3 id="catSectionTitle" class="text-xs font-extrabold uppercase tracking-wider text-emerald-700">🦠 Antibiotics Category (Tap to Expand ▼)</h3>
+        <div id="abxList" class="space-y-4"></div>
+      </div>
+    </section>
+
+    <!-- ================= SECTION 3: PRESCRIPTION WRITER ================= -->
+    <section id="tab-rx" class="hidden space-y-4 text-xs">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+        <div>
+          <h2 class="text-base md:text-lg font-extrabold text-slate-900">📝 Prescription Writer & Builder</h2>
+          <p class="text-[11px] text-slate-500">Fill in patient details, add prescriptions, and generate a printable clinical Rx</p>
+        </div>
+        <button onclick="printRx()" class="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-xl font-bold shadow-sm flex items-center gap-1.5 shrink-0">
+          <span>🖨️</span><span>Print / Copy Prescription</span>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Input Form Column -->
+        <div class="card p-4 space-y-3 lg:col-span-1 bg-white">
+          <h3 class="font-extrabold text-sm text-slate-900 border-b border-slate-200 pb-2">👤 Patient & Rx Details</h3>
+          
+          <div>
+            <label class="text-slate-700 font-bold block mb-1">Patient Full Name:</label>
+            <input id="rxPtName" type="text" placeholder="e.g., John Doe" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-800 font-semibold">
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-slate-700 font-bold block mb-1">Age / Sex:</label>
+              <input id="rxPtAge" type="text" placeholder="e.g., 45 / M" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-800 font-semibold">
+            </div>
+            <div>
+              <label class="text-slate-700 font-bold block mb-1">Date:</label>
+              <input id="rxDate" type="date" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-800 font-semibold">
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-slate-200 space-y-2">
+            <h4 class="font-extrabold text-xs text-sky-700">💊 Add Medication Line</h4>
+            <div>
+              <label class="text-slate-700 block mb-0.5">Medication Name & Strength:</label>
+              <input id="rxMedName" type="text" placeholder="e.g., Ceftriaxone 1g IV" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-800">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="text-slate-700 block mb-0.5">Dose / Frequency:</label>
+                <input id="rxMedFreq" type="text" placeholder="e.g., q24h x 7 days" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-800">
+              </div>
+              <div>
+                <label class="text-slate-700 block mb-0.5">Route / Qty:</label>
+                <input id="rxMedRoute" type="text" placeholder="e.g., IV / #7 vials" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-800">
+              </div>
+            </div>
+            <button onclick="addRxItem()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-bold shadow-sm mt-1">
+              + Add to Prescription
+            </button>
+          </div>
+
+          <div class="pt-2 border-t border-slate-200">
+            <label class="text-slate-700 font-bold block mb-1">Clinical Notes / Diagnosis:</label>
+            <textarea id="rxNotes" rows="2" placeholder="e.g., Acute Pyelonephritis / Follow up in 5 days" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-800"></textarea>
+          </div>
+        </div>
+
+        <!-- Prescription Preview Sheet Column -->
+        <div class="card p-5 lg:col-span-2 bg-white flex flex-col justify-between border-2 border-sky-200 shadow-md">
+          <div id="rxPreviewSheet" class="space-y-4">
+            <!-- Header -->
+            <div class="flex justify-between items-start border-b-2 border-slate-800 pb-3">
+              <div>
+                <h2 class="font-extrabold text-base text-slate-900">Dr. Emergency & Acute Care Clinic</h2>
+                <p class="text-[11px] text-slate-500">Department of Emergency Medicine & Critical Care</p>
+              </div>
+              <div class="text-right text-xs">
+                <p class="font-bold text-slate-800">Date: <span id="prevDate" class="font-normal">--</span></p>
+              </div>
+            </div>
+
+            <!-- Patient Info -->
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 grid grid-cols-2 gap-2 text-xs">
+              <div><span class="text-slate-500 font-bold">Patient Name:</span> <span id="prevName" class="font-extrabold text-slate-900">--</span></div>
+              <div><span class="text-slate-500 font-bold">Age / Sex:</span> <span id="prevAge" class="font-extrabold text-slate-900">--</span></div>
+            </div>
+
+            <!-- Rx Symbol & Medication List -->
+            <div class="space-y-3 min-h-[180px]">
+              <div class="text-2xl font-serif font-extrabold text-sky-700 italic">Rx</div>
+              <div id="rxItemsList" class="space-y-2.5 pl-2">
+                <p class="text-slate-400 italic text-xs">No medications added yet. Use the form on the left to add items.</p>
+              </div>
+            </div>
+
+            <!-- Notes & Signature -->
+            <div class="pt-4 border-t border-slate-200 space-y-6">
+              <div class="text-xs">
+                <span class="font-bold text-slate-700">Clinical Notes / Instructions:</span>
+                <p id="prevNotes" class="text-slate-600 mt-0.5">--</p>
+              </div>
+              <div class="flex justify-between items-end pt-4">
+                <div class="text-[10px] text-slate-400">
+                  Acute Care Pocket Guide v6.0 • Digital Medical Reference
+                </div>
+                <div class="text-center">
+                  <div class="border-b border-slate-400 w-44 pb-6 mb-1"></div>
+                  <span class="text-xs font-bold text-slate-800">Physician Signature & Stamp</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SECTION 4: EMERGENCY PROTOCOLS ================= -->
+    <section id="tab-protocols" class="hidden space-y-3 text-xs">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+        <div>
+          <h2 class="text-base md:text-lg font-extrabold text-slate-900">🚨 Emergency Protocols (Neuro, Surgery & Internal Medicine)</h2>
+          <p class="text-[11px] text-slate-500">Tap any protocol card to expand step-by-step management</p>
+        </div>
+        <div class="flex gap-2 items-center">
+          <input id="pSearch" type="text" oninput="renderProtos()" placeholder="🔍 Search protocol (DKA, GI Bleed, ATLS, ICP, STEMI)..."
+            class="w-full md:w-72 bg-white border border-slate-300 rounded-xl py-2 px-3 text-slate-800 shadow-sm">
+          <button onclick="toggleGroup('proto')" class="bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 px-3 py-2 rounded-xl text-[11px] font-bold shrink-0 shadow-sm">
+            Expand / Collapse
+          </button>
+        </div>
+      </div>
+
+      <!-- Specialty Filter Pills -->
+      <div class="flex gap-1.5 overflow-x-auto no-sb text-xs font-bold pb-1" id="protoCatBar"></div>
+
+      <!-- Collapsible Protocols Grid -->
+      <div id="protoList" class="grid grid-cols-1 lg:grid-cols-2 gap-2.5 items-start"></div>
+    </section>
+
+    <!-- ================= SECTION 5: CLINICAL SCALES, SCORES & RENAL CRCL ================= -->
+    <section id="tab-scales" class="hidden space-y-4 text-xs">
+      <h2 class="text-base md:text-lg font-extrabold text-slate-900">🧠 Clinical Scales, Scores, Renal CrCl & Calculators</h2>
+      
+      <!-- CrCl Calculator Card -->
+      <div class="card p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-emerald-300 space-y-3 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-emerald-200/80 pb-2.5">
+          <div>
+            <h3 class="text-sm font-extrabold text-emerald-800">💧 Cockcroft-Gault CrCl & Renal Dose Adjuster</h3>
+            <p class="text-[11px] text-slate-600">Enter Age & Serum Creatinine to calculate creatinine clearance</p>
+          </div>
+          <div class="bg-white border border-emerald-200 rounded-xl px-4 py-1.5 text-center shrink-0 shadow-sm">
+            <span class="text-[10px] text-slate-500 block">Creatinine Clearance</span>
+            <span id="crclResult" class="text-lg font-extrabold text-emerald-700">86 mL/min</span>
+            <span id="crclStage" class="text-[10px] text-emerald-600 block font-bold">Normal Renal Function (&gt;50)</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2.5 text-xs">
+          <div>
+            <label class="text-slate-700 font-bold block mb-1">Age (years):</label>
+            <input id="rAge" type="number" value="50" min="1" max="110" oninput="calcCrCl()" class="w-full bg-white border border-slate-300 rounded-xl p-2 text-center font-extrabold text-slate-800 shadow-sm">
+          </div>
+          <div>
+            <label class="text-slate-700 font-bold block mb-1">S. Creatinine (mg/dL):</label>
+            <input id="rScr" type="number" step="0.1" value="1.0" min="0.2" max="20" oninput="calcCrCl()" class="w-full bg-white border border-sky-400 rounded-xl p-2 text-center font-extrabold text-sky-700 shadow-sm">
+          </div>
+          <div>
+            <label class="text-slate-700 font-bold block mb-1">Sex:</label>
+            <select id="rSex" onchange="calcCrCl()" class="w-full bg-white border border-slate-300 rounded-xl p-2 font-bold text-slate-800 shadow-sm">
+              <option value="1">Male (×1.0)</option>
+              <option value="0.85">Female (×0.85)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        
+        <!-- 1. GCS -->
+        <div class="card p-4 space-y-3 flex flex-col justify-between">
+          <div class="space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-2.5">
+              <div>
+                <span class="text-slate-500 text-[11px]">Glasgow Coma Scale</span>
+                <div id="gcsOut" class="text-xl font-extrabold text-emerald-600">15/15 (E4 V5 M6)</div>
+              </div>
+              <button onclick="copyGCS()" class="bg-sky-50 border border-sky-300 text-sky-700 px-3 py-1.5 rounded-xl font-bold shadow-sm">Copy 📋</button>
+            </div>
+            <div class="space-y-2">
+              <select id="gcsE" onchange="calcGCS()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-800 font-semibold">
+                <option value="4">E4: Spontaneous</option>
+                <option value="3">E3: To Verbal Command</option>
+                <option value="2">E2: To Pain</option>
+                <option value="1">E1: No Response</option>
+              </select>
+              <select id="gcsV" onchange="calcGCS()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-800 font-semibold">
+                <option value="5">V5: Oriented</option>
+                <option value="4">V4: Confused</option>
+                <option value="3">V3: Inappropriate Words</option>
+                <option value="2">V2: Incomprehensible Sounds</option>
+                <option value="1">V1: None / Intubated (T)</option>
+              </select>
+              <select id="gcsM" onchange="calcGCS()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-slate-800 font-semibold">
+                <option value="6">M6: Obeys Commands</option>
+                <option value="5">M5: Localizes Pain</option>
+                <option value="4">M4: Normal Withdrawal</option>
+                <option value="3">M3: Decorticate Flexion</option>
+                <option value="2">M2: Decerebrate Extension</option>
+                <option value="1">M1: No Response</option>
+              </select>
+            </div>
+          </div>
+          <div id="gcsNote" class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-center text-emerald-700 font-bold">Mild Brain Injury (13–15)</div>
+        </div>
+
+        <!-- 2. ALVARADO SCORE -->
+        <div class="card p-4 space-y-3 flex flex-col justify-between">
+          <div class="space-y-2.5">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+              <h3 class="font-extrabold text-sm text-sky-700">🩺 Alvarado Score (Appendicitis)</h3>
+              <div id="alvScore" class="text-sm font-extrabold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-200">0 / 10</div>
+            </div>
+            <div class="space-y-1.5 max-h-48 overflow-y-auto no-sb pr-1">
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100"><input type="checkbox" value="2" onchange="calcAlv()" class="alv-chk accent-sky-600"> Migratory RIF Pain (2 pts)</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100"><input type="checkbox" value="1" onchange="calcAlv()" class="alv-chk accent-sky-600"> Anorexia / Ketones (1 pt)</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100"><input type="checkbox" value="1" onchange="calcAlv()" class="alv-chk accent-sky-600"> Nausea or Vomiting (1 pt)</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100"><input type="checkbox" value="2" onchange="calcAlv()" class="alv-chk accent-sky-600"> Tenderness in RIF (2 pts)</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100"><input type="checkbox" value="1" onchange="calcAlv()" class="alv-chk accent-sky-600"> Rebound Tenderness (1 pt)</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100"><input type="checkbox" value="1" onchange="calcAlv()" class="alv-chk accent-sky-600"> Elevated Temp &gt; 37.3°C (1 pt)</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100"><input type="checkbox" value="2" onchange="calcAlv()" class="alv-chk accent-sky-600"> Leukocytosis &gt; 10k (2 pts)</label>
+              <label class="flex items-center gap-2 p-1 bg-slate-50 rounded-lg cursor-pointer hover:bg-slate-100"><input type="checkbox" value="1" onchange="calcAlv()" class="alv-chk accent-sky-600"> Shift to Left (1 pt)</label>
+            </div>
+          </div>
+          <div id="alvOut" class="bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-center font-bold text-slate-700 text-xs">Score 1–4: Unlikely Appendicitis</div>
+        </div>
+
+        <!-- 3. APGAR SCORE -->
+        <div class="card p-4 space-y-3 flex flex-col justify-between">
+          <div class="space-y-2.5">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-2">
+              <h3 class="font-extrabold text-sm text-purple-700">👶 APGAR Score (Neonatal)</h3>
+              <div id="apgarOut" class="text-sm font-extrabold text-purple-700 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200">10 / 10</div>
+            </div>
+            <div class="space-y-1.5 text-xs">
+              <div class="flex justify-between items-center gap-1">
+                <span class="text-slate-600 font-bold">Appearance (Color):</span>
+                <select id="apA" onchange="calcApgar()" class="bg-slate-50 border border-slate-300 rounded-lg p-1 text-slate-800 font-semibold"><option value="2">Pink all over (2)</option><option value="1">Acroyanosis (1)</option><option value="0">Blue/Pale (0)</option></select>
+              </div>
+              <div class="flex justify-between items-center gap-1">
+                <span class="text-slate-600 font-bold">Pulse (Heart Rate):</span>
+                <select id="apP" onchange="calcApgar()" class="bg-slate-50 border border-slate-300 rounded-lg p-1 text-slate-800 font-semibold"><option value="2">&gt; 100 bpm (2)</option><option value="1">&lt; 100 bpm (1)</option><option value="0">Absent (0)</option></select>
+              </div>
+              <div class="flex justify-between items-center gap-1">
+                <span class="text-slate-600 font-bold">Grimace (Reflex):</span>
+                <select id="apG" onchange="calcApgar()" class="bg-slate-50 border border-slate-300 rounded-lg p-1 text-slate-800 font-semibold"><option value="2">Cries / Pulls away (2)</option><option value="1">Grimace (1)</option><option value="0">None (0)</option></select>
+              </div>
+              <div class="flex justify-between items-center gap-1">
+                <span class="text-slate-600 font-bold">Activity (Tone):</span>
+                <select id="apAc" onchange="calcApgar()" class="bg-slate-50 border border-slate-300 rounded-lg p-1 text-slate-800 font-semibold"><option value="2">Active movement (2)</option><option value="1">Some flexion (1)</option><option value="0">Limp (0)</option></select>
+              </div>
+              <div class="flex justify-between items-center gap-1">
+                <span class="text-slate-600 font-bold">Respiration:</span>
+                <select id="apR" onchange="calcApgar()" class="bg-slate-50 border border-slate-300 rounded-lg p-1 text-slate-800 font-semibold"><option value="2">Strong cry / Regular (2)</option><option value="1">Slow / Irregular (1)</option><option value="0">Absent (0)</option></select>
+              </div>
+            </div>
+          </div>
+          <div id="apgarNote" class="bg-purple-50 border border-purple-200 p-2 rounded-xl text-center text-purple-700 font-bold text-[11px]">Normal Neonatal Status (7–10)</div>
+        </div>
+
+        <!-- 4. ABC/2 -->
+        <div class="card p-4 space-y-3 flex flex-col justify-between">
+          <div class="space-y-2.5">
+            <h3 class="font-extrabold text-sm text-sky-700 border-b border-slate-200 pb-2">📐 ABC/2 Hematoma Volume</h3>
+            <div><label class="text-slate-700 block mb-1">A: Largest diameter on CT (cm)</label><input id="abA" type="number" step="0.1" value="4.0" oninput="calcABC()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 font-bold text-slate-800"></div>
+            <div><label class="text-slate-700 block mb-1">B: Diameter 90° to A (cm)</label><input id="abB" type="number" step="0.1" value="3.0" oninput="calcABC()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 font-bold text-slate-800"></div>
+            <div><label class="text-slate-700 block mb-1">C: Slices × Slice thickness (cm)</label><input id="abC" type="number" step="0.1" value="3.0" oninput="calcABC()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 font-bold text-slate-800"></div>
+          </div>
+          <div id="abcOut" class="bg-slate-50 border border-slate-200 p-3 rounded-xl text-center font-extrabold text-base text-sky-700">Volume: 18.0 mL (cm³)</div>
+        </div>
+
+        <!-- 5. ICH Score -->
+        <div class="card p-4 space-y-2.5 flex flex-col justify-between">
+          <div class="space-y-1.5">
+            <h3 class="font-extrabold text-sm text-amber-700 border-b border-slate-200 pb-2">📊 ICH Score (Mortality)</h3>
+            <select id="icG" onchange="calcICH()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-800"><option value="0">GCS 13–15 (0 pt)</option><option value="1">GCS 5–12 (+1 pt)</option><option value="2">GCS 3–4 (+2 pts)</option></select>
+            <select id="icV" onchange="calcICH()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-800"><option value="0">ICH Volume &lt; 30 cm³ (0)</option><option value="1">ICH Volume ≥ 30 cm³ (+1)</option></select>
+            <select id="icI" onchange="calcICH()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-800"><option value="0">No IVH (0)</option><option value="1">IVH Present (+1)</option></select>
+            <select id="icF" onchange="calcICH()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-800"><option value="0">Supratentorial (0)</option><option value="1">Infratentorial (+1)</option></select>
+            <select id="icA" onchange="calcICH()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 text-slate-800"><option value="0">Age &lt; 80 yrs (0)</option><option value="1">Age ≥ 80 yrs (+1)</option></select>
+          </div>
+          <div id="ichOut" class="bg-slate-50 border border-slate-200 p-3 rounded-xl text-center font-extrabold text-sm text-amber-700">ICH Score: 0/6 (30-Day Mort: 0%)</div>
+        </div>
+
+        <!-- 6. Parkland Burn Calculator -->
+        <div class="card p-4 space-y-3 flex flex-col justify-between">
+          <div class="space-y-2.5">
+            <h3 class="font-extrabold text-sm text-rose-700 border-b border-slate-200 pb-2">🔥 Parkland Burn Fluid (Surgery)</h3>
+            <p class="text-[11px] text-slate-500">4 mL × Weight (kg) × %TBSA (2nd/3rd degree burns) of Lactated Ringer's</p>
+            <div>
+              <label class="text-slate-700 block mb-1">Burn %TBSA (1–100%):</label>
+              <input id="burnTbsa" type="number" value="20" min="1" max="100" oninput="calcBurn()" class="w-full bg-slate-50 border border-rose-300 rounded-xl p-2.5 font-extrabold text-rose-700 text-sm">
+            </div>
+          </div>
+          <div id="burnOut" class="bg-slate-50 border border-slate-200 p-3 rounded-xl space-y-1 text-center">
+            <div class="text-sm font-extrabold text-slate-900">Total 24h: 5600 mL LR</div>
+            <div class="text-xs text-sky-700 font-bold">1st 8h: 2800 mL (350 mL/hr)</div>
+            <div class="text-[11px] text-slate-500">Next 16h: 2800 mL (175 mL/hr)</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================= SECTION 6: ICU PUMP ================= -->
+    <section id="tab-pump" class="hidden space-y-3 text-xs">
+      <h2 class="text-base md:text-lg font-extrabold text-slate-900">💉 ICU Vasopressor & Sedation Infusion Pump</h2>
+      <div class="card p-4 md:p-5 max-w-2xl bg-white">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+          <div class="space-y-3">
+            <select id="pPre" onchange="setPump()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-slate-800 font-bold">
+              <option value="4,50,0.1,1">Norepinephrine (4mg / 50mL) [mcg/kg/min]</option>
+              <option value="8,50,0.1,1">Norepinephrine Double (8mg / 50mL)</option>
+              <option value="4,50,0.05,1">Epinephrine (4mg / 50mL) [mcg/kg/min]</option>
+              <option value="200,50,5,1">Dopamine (200mg / 50mL) [mcg/kg/min]</option>
+              <option value="250,50,5,1">Dobutamine (250mg / 50mL) [mcg/kg/min]</option>
+              <option value="500,50,20,1">Propofol 1% (500mg / 50mL) [mcg/kg/min]</option>
+              <option value="50,50,0.05,2">Midazolam (50mg / 50mL) [mg/kg/hr]</option>
+              <option value="0.5,50,1,3">Fentanyl (500mcg / 50mL) [mcg/kg/hr]</option>
+            </select>
+            <div class="grid grid-cols-3 gap-2">
+              <div><label class="text-[10px] text-slate-500 block mb-1">Drug (mg)</label><input id="pMg" type="number" value="4" oninput="calcPump()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-center text-slate-800"></div>
+              <div><label class="text-[10px] text-slate-500 block mb-1">Volume (mL)</label><input id="pMl" type="number" value="50" oninput="calcPump()" class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 font-bold text-center text-slate-800"></div>
+              <div><label class="text-[10px] text-sky-700 block mb-1">Target Dose</label><input id="pDs" type="number" step="0.05" value="0.1" oninput="calcPump()" class="w-full bg-slate-50 border border-sky-400 rounded-xl p-2.5 font-bold text-sky-700 text-center"></div>
+            </div>
+          </div>
+          <div class="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center shadow-sm">
+            <span class="text-slate-500 text-xs font-bold">Pump Infusion Rate</span>
+            <div id="pOut" class="text-4xl font-extrabold text-emerald-600 my-2">5.3 mL/hr</div>
+            <span id="pNote" class="text-[11px] text-slate-500">Calculated for Weight: 70 kg</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= MOBILE BOTTOM NAV (6 TABS) ================= -->
+  <nav class="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-slate-200 grid grid-cols-6 z-40 text-[9px] font-bold shadow-md">
+    <button onclick="tab('dosing')" id="n-dosing" class="py-2 flex flex-col items-center active-mob"><span class="text-base">💊</span><span>Meds</span></button>
+    <button onclick="tab('abx')" id="n-abx" class="py-2 flex flex-col items-center text-slate-500"><span class="text-base">📦</span><span>Cats</span></button>
+    <button onclick="tab('rx')" id="n-rx" class="py-2 flex flex-col items-center text-slate-500"><span class="text-base">📝</span><span>Rx Writer</span></button>
+    <button onclick="tab('protocols')" id="n-protocols" class="py-2 flex flex-col items-center text-slate-500"><span class="text-base">🚨</span><span>Protos</span></button>
+    <button onclick="tab('scales')" id="n-scales" class="py-2 flex flex-col items-center text-slate-500"><span class="text-base">🧠</span><span>Scores</span></button>
+    <button onclick="tab('pump')" id="n-pump" class="py-2 flex flex-col items-center text-slate-500"><span class="text-base">💉</span><span>Pump</span></button>
+  </nav>
+
+  <script>
+    let W = 70, CrCl = 86, curCat = 'all', curAbxCat = 'antibiotics', curProtoCat = 'all', pMode = 1;
+    const openSet = new Set();
+    let rxItems = [
+      { name: "Ceftriaxone 1g IV", freq: "q24h x 7 days", route: "IV / #7 vials" },
+      { name: "Metronidazole 500mg IV", freq: "q8h x 5 days", route: "IV / #15 vials" }
+    ];
+
+    const cats = [
+      ['all','All Meds'],['resus','⚡ Resus & ACLS'],['neuro','🧠 Neuro & Osmotherapy'],['cardio','❤️ BP & Cardiac'],['misc','🧪 GI / Endocrine / Antidotes']
+    ];
+
+    const abxCats = [
+      ['antibiotics','🦠 Antibiotics'],
+      ['analgesia','💊 Analgesia'],
+      ['antihistamine','🌿 Antihistamine'],
+      ['anticoagulant','🩸 Anticoagulant'],
+      ['antidepressant','🧠 Antidepressant']
+    ];
+
+    const protoCats = [
+      ['all','All Protocols (15)'],
+      ['neuro','🧠 Neurosurgery & Neuro'],
+      ['surg','🔪 General Surgery & Trauma'],
+      ['med','🏥 Internal Medicine & ICU']
+    ];
+
+    const drugs = [
+      { id: "d1", n: "Atropine", c: "resus", t: "Bradycardia / Organophosphate Antidote", f: w => `• <b>Symptomatic Bradycardia:</b> <b class="text-sky-600">${w >= 40 ? '1 mg IV' : (w * 0.02).toFixed(2) + ' mg IV'}</b> q3–5min (Max 3 mg)<br>• <b>Organophosphate Poisoning:</b> <b class="text-sky-600">2 – 5 mg IV</b> repeat q5min until muscarinic signs clear`, i: "In pediatric bradycardia, minimum dose is 0.1 mg IV." },
+      { id: "d2", n: "Sodium Nitroprusside", c: "cardio", t: "Hypertensive Emergency / Aortic Dissection", f: () => `• <b>Continuous IV Infusion:</b> <b class="text-sky-600">0.3 – 0.5 mcg/kg/min</b> initially<br>• Titrate rapidly up to <b>10 mcg/kg/min max</b>`, i: "Protect infusion bag and tubing from light with opaque foil." },
+      { id: "d3", n: "Amiodarone", c: "resus", t: "Cardiac Arrest (VF/pVT) / Arrhythmias", f: () => `• <b>Cardiac Arrest (VF/pVT pulseless):</b> <b class="text-sky-600">300 mg IV Push</b>, followed by <b>150 mg IV</b> in 3–5 min<br>• <b>Stable Arrhythmias:</b> 150 mg IV over 10 min`, i: "May cause profound hypotension and bradycardia when pushed too rapidly." },
+      { id: "d4", n: "Aminophylline", c: "resus", t: "Severe Refractory Bronchospasm / Asthma", f: w => `• <b>Loading Dose:</b> <b class="text-sky-600">5 mg/kg IV</b> (${Math.round(w * 5)} mg) in D5W over 20–30 min<br>• <b>Maintenance:</b> <b>0.5 – 0.7 mg/kg/hr</b>`, i: "Monitor serum theophylline levels (therapeutic range 10–20 mcg/mL)." },
+      { id: "d5", n: "Mannitol 20%", c: "neuro", t: "Osmotherapy / Raised ICP", f: w => `• <b>Acute ICP Bolus (0.5–1 g/kg):</b> <b class="text-sky-600">${Math.round(w * 2.5)} – ${Math.round(w * 5)} mL IV</b> over 15–20 min<br>• <b>Maintenance:</b> <b>${Math.round(w * 1.25)} mL IV q6h</b>`, i: "Contraindicated in anuria, severe dehydration, or active intracranial bleeding." },
+      { id: "d6", n: "Magnesium Sulfate", c: "resus", t: "Torsades de Pointes / Severe Eclampsia", f: () => `• <b>Cardiac Arrest / Torsades:</b> <b class="text-sky-600">1 – 2 g IV</b> over 5–20 min<br>• <b>Eclamptic Seizures:</b> <b>4 – 6 g IV</b> load over 15 min`, i: "Monitor deep tendon reflexes and respiratory rate. Have Calcium Gluconate ready." },
+      { id: "d7", n: "Epinephrine (Adrenaline)", c: "resus", t: "Cardiac Arrest / Severe Anaphylaxis", f: w => `• <b>Cardiac Arrest (1:10,000):</b> <b class="text-sky-600">${w >= 50 ? '1 mg IV/IO' : (w * 0.01).toFixed(2) + ' mg IV'}</b> q3–5min<br>• <b>Anaphylaxis (1:1,000 IM):</b> <b class="text-sky-600">${w >= 50 ? '0.5 mg IM' : (w * 0.01).toFixed(2) + ' mg IM'}</b>`, i: "For refractory shock, start infusion at 0.05 – 0.5 mcg/kg/min." },
+      { id: "d8", n: "Hydrocortisone", c: "misc", t: "Adrenal Crisis / Refractory Shock", f: () => `• <b>Acute Adrenal Crisis / Septic Shock:</b> <b class="text-sky-600">100 mg IV Bolus Stat</b>, then <b>100 mg IV q8h</b><br>• <b>Severe Anaphylaxis:</b> <b>100 – 200 mg IV</b>`, i: "Provides essential glucocorticoid and mineralocorticoid support." },
+      { id: "d9", n: "Heparin", c: "cardio", t: "ACS / PE / Anticoagulation", f: w => `• <b>Treatment Bolus:</b> <b class="text-sky-600">80 U/kg IV</b> (${Math.min(Math.round(w * 80), 5000)} U max)<br>• <b>Maintenance:</b> <b>18 U/kg/hr</b>`, i: "Reverse rapidly with Protamine Sulfate if bleeding occurs." },
+      { id: "d10", n: "Diazepam", c: "neuro", t: "Acute Status Epilepticus / Muscle Spasms", f: w => `• <b>Status Epilepticus:</b> <b class="text-sky-600">${Math.min((w * 0.2).toFixed(1), 10)} mg IV slowly</b><br>• <b>Pediatric Rectal Gel:</b> <b>${Math.min((w * 0.5).toFixed(1), 20)} mg PR</b>`, i: "Can cause respiratory depression and hypotension." },
+      { id: "d11", n: "Dextrose 50% (D50W)", c: "misc", t: "Severe Hypoglycemia (<60 mg/dL)", f: () => `• <b>Severe Hypoglycemia (Adult):</b> <b class="text-sky-600">25 g IV (50 mL of D50W)</b> IV push stat<br>• <i>(Use D10W for pediatrics)</i>`, i: "Administer Thiamine 100 mg IV before D50W in suspected alcoholism." }
+    ];
+
+    const catItems = [
+      { id: "ab_1", cat: "antibiotics", sub: "iv", badge: "IV Antibiotic", badgeColor: "bg-emerald-100 text-emerald-700", title: "Amikacin", adult: w => `• 15–20 mg/kg/day IV`, peds: w => `• 15–22.5 mg/kg/day` },
+      { id: "ab_2", cat: "antibiotics", sub: "iv", badge: "IV Antibiotic", badgeColor: "bg-emerald-100 text-emerald-700", title: "Ampicillin", adult: () => `• <b>Standard:</b> 2 g IV q4–6h<br>• <b>Meningitis:</b> 2–3 g IV q4h`, peds: w => `• <b>Standard:</b> 50 mg/kg IV q6h<br>• <b>Meningitis:</b> 75–100 mg/kg IV q6h` },
+      { id: "ab_3", cat: "antibiotics", sub: "iv", badge: "IV Antibiotic", badgeColor: "bg-emerald-100 text-emerald-700", title: "Cefazolin", adult: () => `• 2 g IV q8h`, peds: w => `• 25–50 mg/kg/day divided q6–8h` },
+      { id: "ab_4", cat: "antibiotics", sub: "iv", badge: "IV Antibiotic", badgeColor: "bg-emerald-100 text-emerald-700", title: "Cefepime", adult: () => `• 2 g IV q8–12h`, peds: w => `• 50 mg/kg IV q8–12h` },
+      { id: "ab_5", cat: "antibiotics", sub: "iv", badge: "IV Antibiotic", badgeColor: "bg-emerald-100 text-emerald-700", title: "Cefotaxime", adult: () => `• <b>Standard:</b> 2 g IV q6–8h<br>• <b>Meningitis:</b> 2 g IV q4–6h`, peds: w => `• <b>Standard:</b> 150–200 mg/kg/day divided q6–8h<br>• <b>Meningitis:</b> up to 200 mg/kg/day` },
+      { id: "ab_6", cat: "antibiotics", sub: "iv", badge: "IV Antibiotic", badgeColor: "bg-emerald-100 text-emerald-700", title: "Ceftazidime", adult: () => `• 2 g IV q8h`, peds: w => `• 100–150 mg/kg/day divided q8h` },
+      { id: "ab_7", cat: "antibiotics", sub: "iv", badge: "IV Antibiotic", badgeColor: "bg-emerald-100 text-emerald-700", title: "Ceftriaxone", adult: () => `• <b>Standard:</b> 1–2 g IV q24h<br>• <b>Meningitis:</b> 2 g IV q12h`, peds: w => `• <b>Standard:</b> 50–75 mg/kg/day <span class="text-emerald-700 font-bold">(${Math.round(w*50)}–${Math.round(w*75)} mg/day)</span><br>• <b>Meningitis:</b> 100 mg/kg/day divided q12h <span class="text-emerald-700 font-bold">(${Math.round(w*50)} mg IV q12h)</span>` },
+      { id: "ab_8", cat: "antibiotics", sub: "iv", badge: "IV Antibiotic", badgeColor: "bg-emerald-100 text-emerald-700", title: "Clindamycin", adult: () => `• 600–900 mg IV q8h`, peds: w => `• 10–13 mg/kg IV q8h` },
+      { id: "ab_9", cat: "antibiotics", sub: "iv", badge: "IV Antibiotic", badgeColor: "bg-emerald-100 text-emerald-700", title: "Gentamicin", adult: w => `• 5–7 mg/kg IV q24h`, peds: w => `• ~5–7.5 mg/kg/day` },
+      { id: "ab_10", cat: "antibiotics", sub: "iv", badge: "IV Antibiotic", badgeColor: "bg-emerald-100 text-emerald-700", title: "Linezolid", adult: () => `• 600 mg IV/PO q12h`, peds: w => `• <b>&lt;12 yr:</b> 10 mg/kg q8h<br>• <b>≥12 yr:</b> 600 mg q12h` },
+      { id: "ab_11", cat: "antibiotics", sub: "iv", badge: "IV Antibiotic", badgeColor: "bg-emerald-100 text-emerald-700", title: "Meropenem", adult: () => `• <b>Standard:</b> 1 g IV q8h<br>• <b>Meningitis:</b> 2 g IV q8h`, peds: w => `• <b>Standard:</b> 20 mg/kg IV q8h<br>• <b>Meningitis:</b> 40 mg/kg IV q8h` },
+      { id: "ab_12", cat: "antibiotics", sub: "iv", badge: "IV Antibiotic", badgeColor: "bg-emerald-100 text-emerald-700", title: "Metronidazole", adult: () => `• 500 mg IV q8h`, peds: w => `• 7.5–10 mg/kg IV q8h` },
+      { id: "ab_13", cat: "antibiotics", sub: "iv", badge: "IV Antibiotic", badgeColor: "bg-emerald-100 text-emerald-700", title: "Piperacillin / Tazobactam", adult: () => `• 4.5 g IV q6–8h`, peds: w => `• 80–100 mg/kg/dose q6–8h` },
+      { id: "ab_14", cat: "antibiotics", sub: "iv", badge: "IV Antibiotic", badgeColor: "bg-emerald-100 text-emerald-700", title: "Vancomycin", adult: w => `• 15–20 mg/kg IV q8–12h <span class="text-sky-700 font-bold">(${Math.round(w*15)}–${Math.round(w*20)} mg/dose)</span>`, peds: w => `• 15 mg/kg IV q6h commonly` },
+      { id: "ab_po1", cat: "antibiotics", sub: "oral", badge: "Oral Antibiotic", badgeColor: "bg-teal-100 text-teal-800", title: "Placeholder: Oral Antibiotics Section", desc: "Ready for your custom oral (PO) antibiotic medication entries.", details: "Provide your list of oral antibiotics to populate this section." },
+      { id: "ci2", cat: "analgesia", badge: "Analgesia", badgeColor: "bg-sky-100 text-sky-700", title: "Placeholder: Analgesia Category", desc: "Ready for custom analgesic and pain management medication entries.", details: "You can provide custom analgesics later." },
+      { id: "ci3", cat: "antihistamine", badge: "Antihistamine", badgeColor: "bg-teal-100 text-teal-800", title: "Placeholder: Antihistamine Category", desc: "Ready for custom antihistamine and allergic reaction entries.", details: "You can provide custom antihistamines later." },
+      { id: "ci4", cat: "anticoagulant", badge: "Anticoagulant", badgeColor: "bg-rose-100 text-rose-700", title: "Placeholder: Anticoagulant Category", desc: "Ready for custom anticoagulant entries.", details: "You can provide custom anticoagulants later." },
+      { id: "ci5", cat: "antidepressant", badge: "Antidepressant", badgeColor: "bg-purple-100 text-purple-700", title: "Placeholder: Antidepressant Category", desc: "Ready for custom antidepressant entries.", details: "You can provide custom antidepressants later." }
+    ];
+
+    const protos = [
+      { id: "p1", cat: "neuro", badge: "Neurocritical Care", badgeColor: "bg-rose-100 text-rose-700", t: "🚨 1. Raised Intracranial Pressure (ICP) & Herniation Tiers", b: `• <b>Targets:</b> ICP &lt; 22 mmHg | CPP 60–70 mmHg | SpO2 &gt; 94%<br>• <b>Tier 1:</b> Mannitol 20% 0.5–1 g/kg IV or Hypertonic Saline 3% 2–5 mL/kg IV.` },
+      { id: "p2", cat: "surg", badge: "Trauma Surgery", badgeColor: "bg-rose-100 text-rose-700", t: "🔪 2. ATLS Primary Survey & Massive Transfusion (MTP)", b: `• <b>cABCDE Primary Survey:</b> Exsanguinating hemorrhage -> Airway -> Breathing -> Circulation.<br>• <b>MTP:</b> 1:1:1 PRBC:FFP:Platelets + TXA 1g IV.` },
+      { id: "p3", cat: "med", badge: "Endocrine ER", badgeColor: "bg-emerald-100 text-emerald-700", t: "🏥 3. Diabetic Ketoacidosis (DKA) & HHS Protocol", b: `• <b>Fluids:</b> 0.9% NS 1000 mL over 1st hour.<br>• <b>Potassium:</b> Hold insulin if K+ &lt; 3.3 mEq/L; replace KCl.<br>• <b>Insulin:</b> 0.1 units/kg/hr regular insulin infusion.` },
+      { id: "p4", cat: "med", badge: "Cardiology ER", badgeColor: "bg-rose-100 text-rose-700", t: "❤️ 4. Acute Coronary Syndrome (STEMI / NSTEMI)", b: `• <b>Loading:</b> Aspirin 300mg chewed + Ticagrelor 180mg PO.<br>• <b>Anticoagulation:</b> UFH bolus or Enoxaparin SC.<br>• <b>Reperfusion:</b> Primary PCI within 90 min.` }
+    ];
+
+    function init() {
+      document.getElementById('catBar').innerHTML = cats.map(c=>`<button onclick="setCat('${c[0]}')" class="px-3.5 py-1.5 rounded-xl shrink-0 transition shadow-sm ${c[0]===curCat?'bg-sky-600 text-white font-extrabold':'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'}">${c[1]}</button>`).join('');
+      document.getElementById('abxCatBar').innerHTML = abxCats.map(c=>`<button onclick="setAbxCat('${c[0]}')" class="px-3.5 py-1.5 rounded-xl shrink-0 transition shadow-sm ${c[0]===curAbxCat?'bg-emerald-600 text-white font-extrabold':'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'}">${c[1]}</button>`).join('');
+      document.getElementById('protoCatBar').innerHTML = protoCats.map(c=>`<button onclick="setProtoCat('${c[0]}')" class="px-3.5 py-1.5 rounded-xl shrink-0 transition shadow-sm ${c[0]===curProtoCat?'bg-sky-600 text-white font-extrabold':'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'}">${c[1]}</button>`).join('');
+      
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('rxDate').value = today;
+      updateRxPreview();
+      calcCrCl(); renderDrugs(); renderAbx(); renderProtos(); calcPump(); calcBurn(); calcAlv(); calcApgar();
+    }
+
+    function toggleAcc(id) {
+      if (openSet.has(id)) openSet.delete(id);
+      else openSet.add(id);
+      renderDrugs(); renderAbx(); renderProtos();
+    }
+
+    function toggleGroup(group) {
+      let ids = [];
+      if (group === 'drug') ids = drugs.map(d => d.id);
+      if (group === 'abx') ids = catItems.map(i => i.id);
+      if (group === 'proto') ids = protos.map(p => p.id);
+
+      const anyOpen = ids.some(id => openSet.has(id));
+      ids.forEach(id => {
+        if (anyOpen) openSet.delete(id);
+        else openSet.add(id);
+      });
+      renderDrugs(); renderAbx(); renderProtos();
+    }
+
+    function setW(v) {
+      W = Math.max(2, Math.min(200, parseFloat(v)||70));
+      ['wInpMob','wInpSide'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).value = W; });
+      ['wRngMob','wRngSide'].forEach(id => { if(document.getElementById(id)) document.getElementById(id).value = Math.min(W,150); });
+      document.getElementById('hdrW').innerText = W+' kg';
+      document.getElementById('sideWBadge').innerText = W+' kg';
+      document.getElementById('pNote').innerText = 'Calculated for Weight: '+W+' kg';
+      calcCrCl(); renderDrugs(); renderAbx(); calcPump(); calcBurn();
+    }
+
+    function calcCrCl() {
+      const age = Math.max(1, parseFloat(document.getElementById('rAge').value) || 50);
+      const scr = Math.max(0.2, parseFloat(document.getElementById('rScr').value) || 1.0);
+      const sex = parseFloat(document.getElementById('rSex').value) || 1.0;
+      CrCl = Math.max(1, Math.round(((140 - age) * W * sex) / (72 * scr)));
+
+      const resEl = document.getElementById('crclResult');
+      const stgEl = document.getElementById('crclStage');
+      resEl.innerText = `${CrCl} mL/min`;
+      document.getElementById('hdrCrCl').innerText = `${CrCl}`;
+      document.getElementById('sideCrClBadge').innerText = `${CrCl} mL/min`;
+
+      if (CrCl > 50) {
+        resEl.className = "text-lg font-extrabold text-emerald-700";
+        stgEl.innerText = "Normal Renal Function (>50)";
+      } else if (CrCl >= 20) {
+        resEl.className = "text-lg font-extrabold text-amber-700";
+        stgEl.innerText = "Moderate Impairment (20–50)";
+      } else {
+        resEl.className = "text-lg font-extrabold text-rose-700";
+        stgEl.innerText = "Severe Renal Failure (<20)";
+      }
+    }
+
+    function setCat(c) { curCat = c; init(); }
+    function setAbxCat(c) {
+      curAbxCat = c;
+      const titles = {
+        'antibiotics': '🦠 Antibiotics Category (Tap to Expand ▼)',
+        'analgesia': '💊 Analgesia Category (Tap to Expand ▼)',
+        'antihistamine': '🌿 Antihistamine Category (Tap to Expand ▼)',
+        'anticoagulant': '🩸 Anticoagulant Category (Tap to Expand ▼)',
+        'antidepressant': '🧠 Antidepressant Category (Tap to Expand ▼)'
+      };
+      document.getElementById('catSectionTitle').innerText = titles[c] || 'Category Items';
+      init();
+    }
+    function setProtoCat(c) { curProtoCat = c; init(); }
+
+    function addRxItem() {
+      const name = document.getElementById('rxMedName').value.trim();
+      const freq = document.getElementById('rxMedFreq').value.trim();
+      const route = document.getElementById('rxMedRoute').value.trim();
+      if (!name) { alert('Please enter a medication name.'); return; }
+      rxItems.push({ name, freq: freq || 'as directed', route: route || 'oral/IV' });
+      document.getElementById('rxMedName').value = '';
+      document.getElementById('rxMedFreq').value = '';
+      document.getElementById('rxMedRoute').value = '';
+      updateRxPreview();
+    }
+
+    function removeRxItem(idx) {
+      rxItems.splice(idx, 1);
+      updateRxPreview();
+    }
+
+    function updateRxPreview() {
+      const ptName = document.getElementById('rxPtName').value.trim() || 'John Doe (Example)';
+      const ptAge = document.getElementById('rxPtAge').value.trim() || '45 / Male';
+      const rxDate = document.getElementById('rxDate').value || new Date().toISOString().split('T')[0];
+      const rxNotes = document.getElementById('rxNotes').value.trim() || 'Take medications as prescribed. Return if symptoms worsen.';
+
+      document.getElementById('prevName').innerText = ptName;
+      document.getElementById('prevAge').innerText = ptAge;
+      document.getElementById('prevDate').innerText = rxDate;
+      document.getElementById('prevNotes').innerText = rxNotes;
+
+      const listEl = document.getElementById('rxItemsList');
+      if (rxItems.length === 0) {
+        listEl.innerHTML = `<p class="text-slate-400 italic text-xs">No medications added yet. Use the form on the left to add items.</p>`;
+      } else {
+        listEl.innerHTML = rxItems.map((item, idx) => `
+          <div class="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-200">
+            <div>
+              <div class="font-extrabold text-slate-900">${idx + 1}. ${item.name}</div>
+              <div class="text-slate-600">${item.freq} — <span class="italic text-sky-700">${item.route}</span></div>
+            </div>
+            <button onclick="removeRxItem(${idx})" class="text-rose-600 hover:text-rose-800 text-xs font-bold px-2 py-1 bg-rose-50 rounded-lg border border-rose-200">Remove</button>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Attach listeners for dynamic Rx preview update
+    ['rxPtName', 'rxPtAge', 'rxDate', 'rxNotes'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updateRxPreview);
+    });
+
+    function printRx() {
+      const content = document.getElementById('rxPreviewSheet').innerHTML;
+      const win = window.open('', '', 'height=700,width=700');
+      win.document.write('<html><head><title>Prescription</title>');
+      win.document.write('<script src="https://cdn.tailwindcss.com"><\/script>');
+      win.document.write('</head><body class="p-8 bg-white">');
+      win.document.write(content);
+      win.document.write('</body></html>');
+      win.document.close();
+      win.focus();
+      setTimeout(() => { win.print(); }, 500);
+    }
+
+    function renderDrugs() {
+      const q = (document.getElementById('dSearch').value||'').toLowerCase().trim();
+      const list = drugs.filter(d => (curCat==='all'||d.c===curCat) && (!q || d.n.toLowerCase().includes(q) || d.t.toLowerCase().includes(q)));
+      document.getElementById('drugsList').innerHTML = list.map(d => {
+        const isOpen = openSet.has(d.id) || q.length > 1;
+        return `
+        <div class="card overflow-hidden transition border ${isOpen ? 'border-sky-500 shadow-md' : 'border-slate-200'}">
+          <button onclick="toggleAcc('${d.id}')" class="w-full p-3.5 text-left flex justify-between items-center gap-2 bg-slate-50 hover:bg-slate-100 transition">
+            <div class="min-w-0">
+              <b class="text-xs md:text-sm text-slate-900 block truncate">${d.n}</b>
+              <span class="text-[10px] text-sky-600 font-semibold">${d.t}</span>
+            </div>
+            <span class="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-sky-600 text-xs font-bold shrink-0 shadow-sm">
+              ${isOpen ? '▲' : '▼'}
+            </span>
+          </button>
+          <div class="${isOpen ? 'block' : 'hidden'} p-3.5 border-t border-slate-200 bg-white space-y-2 text-xs">
+            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 leading-relaxed text-slate-800">${d.f(W)}</div>
+            <p class="text-[11px] text-amber-900 bg-amber-50 border border-amber-200 p-2 rounded-lg">💡 <b>Clinical Pearl:</b> ${d.i}</p>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderAbxCard(i, q) {
+      const isOpen = openSet.has(i.id) || q.length > 1;
+      const bodyHtml = i.adult ? `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs">
+          <div class="bg-sky-50/70 p-3 rounded-xl border border-sky-200 space-y-1">
+            <div class="text-[11px] font-extrabold text-sky-800">🧑 Adult Dose:</div>
+            <div class="text-slate-800 leading-relaxed">${i.adult(W)}</div>
+          </div>
+          <div class="bg-emerald-50/70 p-3 rounded-xl border border-emerald-200 space-y-1">
+            <div class="text-[11px] font-extrabold text-emerald-800">👶 Pediatric Dose (${W} kg):</div>
+            <div class="text-slate-800 leading-relaxed">${i.peds(W)}</div>
+          </div>
+        </div>
+      ` : `
+        <p class="text-slate-700">${i.desc}</p>
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-slate-600">📌 <b>Status:</b> ${i.details}</div>
+      `;
+      return `
+      <div class="card overflow-hidden border ${isOpen ? 'border-emerald-500 shadow-md' : 'border-slate-200'}">
+        <button onclick="toggleAcc('${i.id}')" class="w-full p-3.5 text-left flex justify-between items-center gap-2 bg-slate-50 hover:bg-slate-100 transition">
+          <div class="space-y-1">
+            <span class="text-[10px] ${i.badgeColor} px-2 py-0.5 rounded-full font-bold inline-block">${i.badge}</span>
+            <h3 class="font-extrabold text-xs md:text-sm text-slate-900 leading-snug">${i.title}</h3>
+          </div>
+          <span class="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-emerald-600 text-xs font-bold shrink-0 shadow-sm">
+            ${isOpen ? '▲' : '▼'}
+          </span>
+        </button>
+        <div class="${isOpen ? 'block' : 'hidden'} p-3.5 border-t border-slate-200 bg-white space-y-2.5 text-xs">
+          ${bodyHtml}
+        </div>
+      </div>`;
+    }
+
+    function renderAbx() {
+      const q = (document.getElementById('abxSearch').value||'').toLowerCase().trim();
+      const list = catItems.filter(i => i.cat===curAbxCat && (!q || i.title.toLowerCase().includes(q)));
+      
+      if (curAbxCat === 'antibiotics') {
+        const ivList = list.filter(i => i.sub === 'iv');
+        const oralList = list.filter(i => i.sub === 'oral');
+        document.getElementById('abxList').innerHTML = `
+          <div class="space-y-2.5">
+            <div class="flex items-center gap-2 border-b border-emerald-200 pb-1.5">
+              <span class="text-sm">💉</span>
+              <h4 class="text-xs md:text-sm font-extrabold text-emerald-800 uppercase tracking-wide">1. IV Antibiotics (Intravenous)</h4>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-2.5 items-start">
+              ${ivList.map(i => renderAbxCard(i, q)).join('')}
+            </div>
+          </div>
+          <div class="space-y-2.5 pt-2">
+            <div class="flex items-center gap-2 border-b border-teal-200 pb-1.5">
+              <span class="text-sm">💊</span>
+              <h4 class="text-xs md:text-sm font-extrabold text-teal-800 uppercase tracking-wide">2. Oral Antibiotics (PO)</h4>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-2.5 items-start">
+              ${oralList.map(i => renderAbxCard(i, q)).join('')}
+            </div>
+          </div>
+        `;
+      } else {
+        document.getElementById('abxList').innerHTML = `
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-2.5 items-start">
+            ${list.map(i => renderAbxCard(i, q)).join('')}
+          </div>
+        `;
+      }
+    }
+
+    function renderProtos() {
+      const q = (document.getElementById('pSearch').value||'').toLowerCase().trim();
+      const filtered = protos.filter(p => (curProtoCat==='all' || p.cat===curProtoCat) && (!q || p.t.toLowerCase().includes(q)));
+      document.getElementById('protoList').innerHTML = filtered.map(p => {
+        const isOpen = openSet.has(p.id) || q.length > 1;
+        return `
+        <div class="card overflow-hidden border ${isOpen ? 'border-sky-500 shadow-md' : 'border-slate-200'}">
+          <button onclick="toggleAcc('${p.id}')" class="w-full p-3.5 text-left flex justify-between items-center gap-2 bg-slate-50 hover:bg-slate-100 transition">
+            <div class="space-y-1">
+              <span class="text-[10px] ${p.badgeColor} px-2.5 py-0.5 rounded-full font-bold inline-block">${p.badge}</span>
+              <h3 class="font-extrabold text-xs md:text-sm text-slate-900">${p.t}</h3>
+            </div>
+            <span class="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-sky-600 text-xs font-bold shrink-0 shadow-sm">
+              ${isOpen ? '▲' : '▼'}
+            </span>
+          </button>
+          <div class="${isOpen ? 'block' : 'hidden'} p-3.5 border-t border-slate-200 bg-white text-slate-800 leading-relaxed text-xs">
+            ${p.b}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function calcGCS() {
+      const e=+document.getElementById('gcsE').value, v=+document.getElementById('gcsV').value, m=+document.getElementById('gcsM').value;
+      const tot = e+v+m;
+      document.getElementById('gcsOut').innerText = `${tot}/15 (E${e} V${v} M${m})`;
+      const note = document.getElementById('gcsNote');
+      if(tot>=13) { note.innerText="Mild Brain Injury (13–15)"; note.className="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-center text-emerald-700 font-bold"; }
+      else if(tot>=9) { note.innerText="Moderate Brain Injury (9–12)"; note.className="bg-amber-50 border border-amber-200 p-2.5 rounded-xl text-center text-amber-700 font-bold"; }
+      else { note.innerText="Severe Brain Injury / Coma (≤8)"; note.className="bg-rose-50 border border-rose-200 p-2.5 rounded-xl text-center text-rose-700 font-bold"; }
+    }
+
+    function copyGCS() { navigator.clipboard.writeText('GCS ' + document.getElementById('gcsOut').innerText); alert('GCS Copied to Clipboard!'); }
+
+    function calcAlv() {
+      let score = 0;
+      document.querySelectorAll('.alv-chk:checked').forEach(el => score += parseInt(el.value));
+      document.getElementById('alvScore').innerText = `${score} / 10`;
+      const note = document.getElementById('alvOut');
+      if (score >= 7) { note.innerText = `Score ${score}: Probable Appendicitis`; note.className = "bg-rose-50 border border-rose-200 p-2.5 rounded-xl text-center text-rose-700 font-bold text-xs"; }
+      else if (score >= 5) { note.innerText = `Score ${score}: Possible Appendicitis`; note.className = "bg-amber-50 border border-amber-200 p-2.5 rounded-xl text-center text-amber-800 font-bold text-xs"; }
+      else { note.innerText = `Score ${score}: Appendicitis Unlikely`; note.className = "bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-center text-slate-700 font-bold text-xs"; }
+    }
+
+    function calcApgar() {
+      const tot = +document.getElementById('apA').value + +document.getElementById('apP').value + +document.getElementById('apG').value + +document.getElementById('apAc').value + +document.getElementById('apR').value;
+      document.getElementById('apgarOut').innerText = `${tot} / 10`;
+      const note = document.getElementById('apgarNote');
+      if (tot >= 7) { note.innerText = `APGAR ${tot}: Normal Status`; note.className = "bg-emerald-50 border border-emerald-200 p-2 rounded-xl text-center text-emerald-700 font-bold text-[11px]"; }
+      else if (tot >= 4) { note.innerText = `APGAR ${tot}: Moderate Depression`; note.className = "bg-amber-50 border border-amber-200 p-2 rounded-xl text-center text-amber-800 font-bold text-[11px]"; }
+      else { note.innerText = `APGAR ${tot}: Severe Depression!`; note.className = "bg-rose-50 border border-rose-200 p-2 rounded-xl text-center text-rose-700 font-bold text-[11px]"; }
+    }
+
+    function calcABC() {
+      const v = ((+document.getElementById('abA').value)*(+document.getElementById('abB').value)*(+document.getElementById('abC').value))/2;
+      document.getElementById('abcOut').innerText = `Volume: ${v.toFixed(1)} mL (cm³) ${v>=30?'⚠️ Critical (≥30mL)':''}`;
+    }
+
+    function calcICH() {
+      const s = (+document.getElementById('icG').value)+(+document.getElementById('icV').value)+(+document.getElementById('icI').value)+(+document.getElementById('icF').value)+(+document.getElementById('icA').value);
+      const m = ['0%','13%','26%','72%','97%','100%','100%'][s];
+      document.getElementById('ichOut').innerText = `ICH Score: ${s}/6 (30-Day Mort: ${m})`;
+    }
+
+    function calcBurn() {
+      const tbsa = Math.max(1, Math.min(100, parseFloat(document.getElementById('burnTbsa').value)||20));
+      const total = Math.round(4 * W * tbsa);
+      const half = Math.round(total / 2);
+      document.getElementById('burnOut').innerHTML = `
+        <div class="text-sm font-extrabold text-slate-900">Total 24h: ${total} mL LR</div>
+        <div class="text-xs text-sky-700 font-bold">1st 8h: ${half} mL (${Math.round(half/8)} mL/hr)</div>
+        <div class="text-[11px] text-slate-500">Next 16h: ${half} mL (${Math.round(half/16)} mL/hr)</div>
+      `;
+    }
+
+    function setPump() {
+      const p = document.getElementById('pPre').value.split(',');
+      document.getElementById('pMg').value=p[0]; document.getElementById('pMl').value=p[1]; document.getElementById('pDs').value=p[2]; pMode=+p[3]; calcPump();
+    }
+
+    function calcPump() {
+      const mg=+document.getElementById('pMg').value||1, ml=+document.getElementById('pMl').value||1, ds=+document.getElementById('pDs').value||0;
+      const rate = pMode===1 ? (ds*W*60)/((mg*1000)/ml) : (pMode===2 ? (ds*W)/(mg/ml) : (ds*W)/((mg*1000)/ml));
+      document.getElementById('pOut').innerText = `${rate.toFixed(1)} mL/hr`;
+    }
+
+    function tab(t) {
+      const sections = ['dosing','abx','rx','protocols','scales','pump'];
+      if (t === 'all') {
+        sections.forEach(x => document.getElementById('tab-'+x).classList.remove('hidden'));
+      } else {
+        sections.forEach(x => document.getElementById('tab-'+x).classList.add('hidden'));
+        document.getElementById('tab-'+t).classList.remove('hidden');
+      }
+      sections.forEach(x => {
+        const mobBtn = document.getElementById('n-'+x);
+        if(mobBtn) mobBtn.className = (x===t) ? "py-2 flex flex-col items-center active-mob" : "py-2 flex flex-col items-center text-slate-500";
+      });
+      [...sections, 'all'].forEach(x => {
+        const sideBtn = document.getElementById('s-'+x);
+        if(sideBtn) sideBtn.className = (x===t)
+          ? "w-full p-3 rounded-xl border border-transparent flex items-center gap-3 text-left transition active-side"
+          : "w-full p-3 rounded-xl border border-slate-200 flex items-center gap-3 text-left text-slate-700 hover:bg-slate-100 transition";
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
